@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser,ApplicantProfile
+from .models import CustomUser,ApplicantProfile,EmployerProfile
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
@@ -57,3 +57,9 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
 
     def get_user_skills_list(self,obj):
         return obj.get_user_skills()    
+    
+class EmployerProfileSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployerProfile
+        fields = ['employer_image','company_name','company_logo','company_website_url','company_description','company_location','employer_email','employer_contact','company_startdate','company_linkedin','company_size']
+        read_only_fields = ['user']

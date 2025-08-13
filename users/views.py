@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.authtoken.models import Token
-from .serializers import RegisterSerializer,LoginSerializer,UserSerializer,ApplicantProfileSerializer
-from .models import ApplicantProfile
+from .serializers import RegisterSerializer,LoginSerializer,UserSerializer,ApplicantProfileSerializer,EmployerProfileSerializer
+from .models import ApplicantProfile,EmployerProfile
 from rest_framework.parsers import MultiPartParser,FormParser
 from rest_framework.exceptions import ValidationError
 
@@ -55,3 +55,21 @@ class ApplicantProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     
     def get_object(self):
         return ApplicantProfile.objects.get(user=self.request.user)
+
+class EmployerProfileCreateView(generics.CreateAPIView):
+    queryset = EmployerProfile.objects.all()
+    serializer_class = EmployerProfileSerializer
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser,FormParser]
+
+    def perform_create(self, serializer):
+        if EmployerProfile.objects.filter(user=self.request.user).exists():
+            raise ValidationError('Profile already exists for this user.')
+        serializer.save(user=self.request.user)
+
+class EmployerProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
+    serializer_class = EmployerProfileSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_object(self):
+        return EmployerProfile.objects.get(user=self.request.user)
