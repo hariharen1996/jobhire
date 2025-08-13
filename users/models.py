@@ -56,7 +56,7 @@ class CustomUser(AbstractBaseUser):
     def is_staff(self):
         return self.is_admin
 
-class Applicantprofile(models.Model):
+class ApplicantProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     user_image = models.ImageField(upload_to='user_profile',default='user_default.png')
     user_bio = models.TextField(default='A passionate and result-driven software developer with...')
@@ -76,4 +76,3 @@ class Applicantprofile(models.Model):
     
     def __str__(self):
         return f"{self.user.username} Profile"
-    

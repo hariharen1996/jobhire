@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework.decorators import api_view,permission_classes
 from rest_framework.authtoken.models import Token
 from .serializers import RegisterSerializer,LoginSerializer,UserSerializer,ApplicantProfileSerializer
-from .models import Applicantprofile
+from .models import ApplicantProfile
 from rest_framework.parsers import MultiPartParser,FormParser
 from rest_framework.exceptions import ValidationError
 
@@ -38,14 +38,14 @@ def logout_user(request):
     return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
 
 class ApplicantProfileCreateView(generics.CreateAPIView):
-    queryset = Applicantprofile.objects.all()
+    queryset = ApplicantProfile.objects.all()
     serializer_class = ApplicantProfileSerializer 
     permission_classes = [IsAuthenticated]
     parser_classes = [MultiPartParser, FormParser]
     
 
     def perform_create(self, serializer):
-        if Applicantprofile.objects.filter(user=self.request.user).exists():
+        if ApplicantProfile.objects.filter(user=self.request.user).exists():
             raise ValidationError("Profile already exists for this user.")
         serializer.save(user=self.request.user)
 
@@ -54,4 +54,4 @@ class ApplicantProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_object(self):
-        return Applicantprofile.objects.get(user=self.request.user)
+        return ApplicantProfile.objects.get(user=self.request.user)
