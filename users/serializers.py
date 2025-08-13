@@ -1,10 +1,9 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import CustomUser
+from .models import CustomUser,Applicantprofile
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
-
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,3 +46,14 @@ class LoginSerializer(serializers.Serializer):
         raise serializers.ValidationError("Incorrect Credentials")
     
     
+class ApplicantProfileSerializer(serializers.ModelSerializer):
+    user_skills_list = serializers.SerializerMethodField()
+    user_skills = serializers.CharField(write_only=True,required=False)
+
+    class Meta:
+        model = Applicantprofile
+        fields = ['user_image','user_bio','user_education','user_cgpa','work_experience','user_resume','user_location','user_skills_list','user_skills']
+        read_only_fields = ['user']
+
+    def get_user_skills_list(self,obj):
+        return obj.get_user_skills()    
