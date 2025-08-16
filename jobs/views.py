@@ -12,6 +12,7 @@ from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from .models import Jobs
 from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
 
 # Create your views here.
 @api_view(['GET'])
@@ -164,3 +165,38 @@ class CreateJobView(APIView):
             job = serializer.save()
             return Response(JobSerializer(job).data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class UpdateJobView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request, id):
+        user = request.user
+        if not hasattr(user, 'employerprofile'):
+            return Response({'detail': 'Only employers can update jobs.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            job = Jobs.objects.get(id=id)
+        except Jobs.DoesNotExist:
+            return Response({'detail': 'Job not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if job.employer.user != user:
+            return Response({'detail': 'You are not allowed to update this job.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = JobSerializer(job, data=request.data)
+        if serializer.is_valid():
+            updated_job = serializer.save(employer=user.employerprofile)
+            return Response(JobSerializer(updated_job).data, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class DeleteJobView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, id):
+        job = get_object_or_404(Jobs, id=id)
+
+        if not hasattr(request.user, 'employerprofile') or job.employer != request.user.employerprofile:
+            return Response({'error': 'You do not have permission to delete this job.'}, status=status.HTTP_403_FORBIDDEN)
+
+        job.delete()
+        return Response({'message': 'Job successfully deleted.'}, status=status.HTTP_200_OK)
