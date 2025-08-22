@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import { setLoading } from "../../features/auth/userSlice";
 
 const Register = () => {
   const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
@@ -13,8 +15,9 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
-  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const dispatch = useDispatch()
+  const loading = useSelector((state) => state.user.loading)
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -57,13 +60,13 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    setLoading(true);
+    dispatch(setLoading(true));
 
     const validationErrors = validateForm();
     console.log(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      setLoading(false);
+      dispatch(setLoading(false));
       return;
     }
 
@@ -86,7 +89,7 @@ const Register = () => {
       if (data.token) localStorage.setItem("token", data.token);
 
       setMessage("Registered Successfully");
-      setTimeout(() => navigate("/"), 2000);
+      navigate('/login')
     } catch (err) {
       if (err.response && err.response.data) {
         const resData = err.response.data;
@@ -111,7 +114,7 @@ const Register = () => {
         setErrors({ common: "Registration failed. Please try again." });
       }
     } finally {
-      setLoading(false);
+      dispatch(setLoading(false));
     }
   };
 
