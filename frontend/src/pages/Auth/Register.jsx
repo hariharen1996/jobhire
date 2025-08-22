@@ -13,6 +13,7 @@ const Register = () => {
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -56,11 +57,13 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
+    setLoading(true);
 
     const validationErrors = validateForm();
     console.log(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
+      setLoading(false);
       return;
     }
 
@@ -85,11 +88,30 @@ const Register = () => {
       setMessage("Registered Successfully");
       setTimeout(() => navigate("/"), 2000);
     } catch (err) {
-      const errorMsg =
-        err.response?.data?.message ||
-        err.response?.data?.detail ||
-        JSON.stringify(err.response?.data || err.message);
-      setErrors({ common: errorMsg });
+      if (err.response && err.response.data) {
+        const resData = err.response.data;
+        console.log(resData);
+        if (resData.non_field_errors) {
+          setErrors({ common: resData.non_field_errors.join(" ") });
+        } else if (resData.detail) {
+          setErrors({ common: resData.detail });
+        } else if (typeof resData === "object") {
+          const formattedErrors = Object.entries(resData).reduce(
+            (acc, [key, value]) => {
+              acc[key] = Array.isArray(value) ? value.join(" ") : value;
+              return acc;
+            },
+            {}
+          );
+          setErrors(formattedErrors);
+        } else {
+          setErrors({ common: "Registration failed. Please try again." });
+        }
+      } else {
+        setErrors({ common: "Registration failed. Please try again." });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -177,10 +199,20 @@ const Register = () => {
         </div>
         <button
           type="submit"
-          className="px-4 py-2 w-full rounded text-white cursor-pointer bg-blue-500 transition hover:bg-blue-600 border-2 border-blue-500"
+          disabled={loading}
+          className={`px-4 py-2 w-full rounded text-white cursor-pointer transition border-2 
+    ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-blue-500 hover:bg-blue-600 border-blue-500"
+    }`}
         >
-          Sign Up
+          {loading ? "Please wait..." : "Sign Up"}
         </button>
+
+        {errors.common && (
+          <p className="text-red-500 text-xs mt-1">*{errors.common}</p>
+        )}
       </form>
       <p className="text-sm text-gray-700">
         Already have an account?{" "}

@@ -13,6 +13,7 @@ const Navbar = () => {
     localStorage.removeItem("email");
     localStorage.removeItem("role");
     localStorage.removeItem("user");
+    localStorage.removeItem("username")
 
     dispatch(clearUser());
 

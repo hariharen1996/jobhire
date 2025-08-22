@@ -8,15 +8,18 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPasword] = useState("");
   const [error, setError] = useState("");
+  const [loading,setLoading] = useState(false)
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true)
 
     if (!email || !password) {
-      setError("please fill all fields");
+      setError("please fill in both email and password");
+      setLoading(false)
       return;
     }
 
@@ -58,17 +61,28 @@ const Login = () => {
 
       navigate("/");
     } catch (err) {
-      console.error("Login error:", err);
-      console.log(err.response);
-
-      const errorMsg =
-        err.response?.data?.message ||
-        (err.response?.data?.errors
-          ? JSON.stringify(err.response.data.errors)
-          : err.message) ||
-        "Login failed. Please try again.";
-
-      setError(errorMsg);
+      if (err.response && err.response.data) {
+        const resData = err.response.data;
+        console.log(resData)
+        if (resData.non_field_errors) {
+          setError(resData.non_field_errors.join(" "));
+        } else if (resData.detail) {
+          setError(resData.detail);
+        } else if (typeof resData === "object") {
+          const formatted = Object.entries(resData)
+            .map(([key, value]) =>
+              Array.isArray(value) ? value.join(" ") : value
+            )
+            .join(" ");
+          setError(formatted);
+        } else {
+          setError("Login failed. Please try again.");
+        }
+      } else {
+        setError("Login failed. Please try again.");
+      }
+    }finally{
+      setLoading(false)
     }
   };
 
@@ -100,9 +114,15 @@ const Login = () => {
         />
         <button
           type="submit"
-          className="px-4 py-2 w-full rounded text-white cursor-pointer bg-blue-500 transition hover:bg-blue-600 border-2 border-blue-500"
+          disabled={loading}
+          className={`px-4 py-2 w-full rounded text-white cursor-pointer transition border-2 
+    ${
+      loading
+        ? "bg-gray-400 cursor-not-allowed"
+        : "bg-blue-500 hover:bg-blue-600 border-blue-500"
+    }`}
         >
-          Sign In
+          {loading ? "Please wait..." : "Sign In"}
         </button>
       </form>
       <p className="text-sm text-gray-700">
