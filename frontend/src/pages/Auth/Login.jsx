@@ -1,21 +1,102 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import axios from "axios";
+import { setUser } from "../../features/auth/userSlice";
 
 const Login = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPasword] = useState("");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email || !password) {
+      setError("please fill all fields");
+      return;
+    }
+
+    try {
+      const { data, status } = await axios.post(
+        "http://127.0.0.1:8000/api/users/login/",
+        { email, password },
+        {
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      console.log(data);
+      console.log(status);
+
+      if (status !== 200) {
+        const errorMsg =
+          data.message ||
+          (data.errors ? JSON.stringify(data.errors) : "Login failed");
+        throw new Error(errorMsg);
+      }
+
+      if (!data.token || !data.user) {
+        throw new Error("Invalid response from server");
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      localStorage.setItem("role", data.user.role);
+      localStorage.setItem("email", data.user.email);
+      localStorage.setItem("username", data.user.username);
+
+      dispatch(
+        setUser({
+          role: data.user.role,
+          email: data.user.email,
+          username: data.user.username,
+        })
+      );
+
+      navigate("/");
+    } catch (err) {
+      console.error("Login error:", err);
+      console.log(err.response);
+
+      const errorMsg =
+        err.response?.data?.message ||
+        (err.response?.data?.errors
+          ? JSON.stringify(err.response.data.errors)
+          : err.message) ||
+        "Login failed. Please try again.";
+
+      setError(errorMsg);
+    }
+  };
+
   return (
     <main className="min-h-screen flex flex-col justify-center items-center px-4">
-      <form className="bg-white shadow-md rounded px-8 pt-6 pb-6 mb-4 w-full max-w-md space-y-4">
-        <h2 className="text-2xl font-bold text-center mb-4">Login to Your Account</h2>
+      <form
+        onSubmit={handleLogin}
+        className="bg-white shadow-md rounded px-8 pt-6 pb-6 mb-4 w-full max-w-md space-y-4"
+      >
+        <h2 className="text-2xl font-bold text-center mb-4">
+          Login to Your Account
+        </h2>
+        {error && <p className="text-red-500 text-xs">*{error}</p>}
         <input
           type="email"
           name="email"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
         />
         <input
           type="password"
           name="password"
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
           placeholder="Password"
+          value={password}
+          onChange={(e) => setPasword(e.target.value)}
         />
         <button
           type="submit"
