@@ -11,6 +11,7 @@ import { Provider } from 'react-redux'
 import { store } from './app/store'
 import ProtectedRoute from './components/routes/ProtectedRoute'
 import AuthorizedRoute from './components/routes/AuthorizedRoute'
+import ApplicantProfile from './pages/Applicant/ApplicantProfile'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path='/' element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
         <Route path='/register' element={<AuthorizedRoute><Register /></AuthorizedRoute>} />
         <Route path='/login' element={<AuthorizedRoute><Login /></AuthorizedRoute>} />
+        <Route path='/applicant-profile' element={<ProtectedRoute><ApplicantProfile /></ProtectedRoute>} />
       </Routes>
     </Provider>
   )
