@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import Spinner from "../../components/Spinner/Spinner";
 import { useDispatch, useSelector } from "react-redux";
 import profileImage from "../../assets/user.png";
-import { fetchApplicantProfile } from "../../features/profile/profileSlice";
+import { fetchApplicantProfile } from "../../features/profile/applicantProfileSlice";
 
 const ApplicantDetails = () => {
   const { token, username, email } = useSelector((state) => state.user);

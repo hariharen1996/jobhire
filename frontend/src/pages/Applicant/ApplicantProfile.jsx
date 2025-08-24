@@ -4,7 +4,7 @@ import {
   fetchApplicantProfile,
   saveApplicantProfile,
   clearMessage,
-} from "../../features/profile/profileSlice";
+} from "../../features/profile/applicantProfileSlice";
 import { useNavigate } from "react-router-dom";
 
 const ApplicantProfile = () => {

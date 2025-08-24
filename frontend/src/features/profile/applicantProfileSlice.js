@@ -54,7 +54,7 @@ export const saveApplicantProfile = createAsyncThunk(
   }
 );
 
-const profileSlice = createSlice({
+const applicantProfileSlice = createSlice({
   name: "profile",
   initialState: {
     profile: null,
@@ -99,5 +99,5 @@ const profileSlice = createSlice({
   },
 });
 
-export const { clearMessage } = profileSlice.actions;
-export default profileSlice.reducer;
+export const { clearMessage } = applicantProfileSlice.actions;
+export default applicantProfileSlice.reducer;
