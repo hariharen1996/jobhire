@@ -13,6 +13,8 @@ import ProtectedRoute from './components/routes/ProtectedRoute'
 import AuthorizedRoute from './components/routes/AuthorizedRoute'
 import ApplicantProfile from './pages/Applicant/ApplicantProfile'
 import ApplicantDetails from './pages/Applicant/ApplicantDetails'
+import EmployerProfile from './pages/Employer/EmployerProfile'
+import EmployerDetails from './pages/Employer/EmployerDetails'
 
 function App() {
   return (
@@ -24,6 +26,8 @@ function App() {
         <Route path='/login' element={<AuthorizedRoute><Login /></AuthorizedRoute>} />
         <Route path='/applicant-profile' element={<ProtectedRoute><ApplicantProfile /></ProtectedRoute>} />
         <Route path='/applicant-details' element={<ProtectedRoute><ApplicantDetails /></ProtectedRoute>} />
+        <Route path='/employer-profile' element={<ProtectedRoute><EmployerProfile /></ProtectedRoute>} />
+        <Route path='/employer-details' element={<ProtectedRoute><EmployerDetails /></ProtectedRoute>} />
       </Routes>
     </Provider>
   )
