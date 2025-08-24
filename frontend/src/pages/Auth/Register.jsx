@@ -2,22 +2,22 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { setLoading } from "../../features/auth/userSlice";
 
 const Register = () => {
-  const storedUser = JSON.parse(localStorage.getItem("user") || "{}");
   const [form, setForm] = useState({
     username: "",
     email: "",
     password: "",
     confirmPassword: "",
-    role: storedUser.role || "applicant",
+    role: "applicant",
   });
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
+  const [loading,setLoading] = useState(false)
+  
   const navigate = useNavigate();
   const dispatch = useDispatch()
-  const loading = useSelector((state) => state.user.loading)
+
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -60,13 +60,13 @@ const Register = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setMessage("");
-    dispatch(setLoading(true));
+    setLoading(true);
 
     const validationErrors = validateForm();
     console.log(validationErrors);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
-      dispatch(setLoading(false));
+      setLoading(false);
       return;
     }
 
@@ -114,7 +114,7 @@ const Register = () => {
         setErrors({ common: "Registration failed. Please try again." });
       }
     } finally {
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 

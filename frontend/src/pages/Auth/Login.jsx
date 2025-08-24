@@ -2,24 +2,26 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
-import { setLoading, setUser } from "../../features/auth/userSlice";
+import { setUser } from "../../features/auth/userSlice";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPasword] = useState("");
   const [error, setError] = useState("");
+  const [loading,setLoading] = useState('')
+  
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const loading = useSelector((state) => state.user.loading)
+  
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
-    dispatch(setLoading(true));
+    setLoading(true);
 
     if (!email || !password) {
       setError("please fill in both email and password");
-      dispatch(setLoading(false));
+      setLoading(false);
       return;
     }
 
@@ -82,7 +84,7 @@ const Login = () => {
         setError("Login failed. Please try again.");
       }
     }finally{
-      dispatch(setLoading(false));
+      setLoading(false);
     }
   };
 
