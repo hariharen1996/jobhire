@@ -85,9 +85,6 @@ const Register = () => {
       );
       console.log(data);
 
-      if (data.user) localStorage.setItem("user", JSON.stringify(data.user));
-      if (data.token) localStorage.setItem("token", data.token);
-
       setMessage("Registered Successfully");
       navigate('/login')
     } catch (err) {

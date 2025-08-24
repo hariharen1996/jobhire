@@ -4,6 +4,8 @@ from .models import CustomUser,ApplicantProfile,EmployerProfile
 from rest_framework.validators import UniqueValidator
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import RegexValidator
+from django.conf import settings
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -47,16 +49,77 @@ class LoginSerializer(serializers.Serializer):
     
     
 class ApplicantProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    email = serializers.CharField(source='user.email', read_only=True)
+    resume_url = serializers.SerializerMethodField()
+    profile_pic_url = serializers.SerializerMethodField()
     user_skills_list = serializers.SerializerMethodField()
-    user_skills = serializers.CharField(write_only=True,required=False)
+    user_skills = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = ApplicantProfile
-        fields = ['user_image','user_bio','user_education','user_cgpa','work_experience','user_resume','user_location','user_skills_list','user_skills']
+        fields = [
+            'username',
+            'email',
+            'user_bio',
+            'user_education',
+            'user_cgpa',
+            'work_experience',
+            'user_location',
+            'user_skills',
+            'user_skills_list',
+            'resume_url',
+            'profile_pic_url'
+        ]
         read_only_fields = ['user']
 
-    def get_user_skills_list(self,obj):
-        return obj.get_user_skills()    
+    def get_resume_url(self, obj):
+        if obj.user_resume and obj.user_resume.name != 'default_resume.pdf':
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user_resume.url)
+            return f"{settings.MEDIA_URL}{obj.user_resume.name}"
+        return None
+
+    def get_profile_pic_url(self, obj):
+        if obj.user_image and obj.user_image.name != 'user_default.png':
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user_image.url)
+            return f"{settings.MEDIA_URL}{obj.user_image.name}"
+        return None
+
+    def get_user_skills_list(self, obj):
+        return obj.get_user_skills()
+
+    def validate_user_skills(self, value):
+        if not value:
+            raise serializers.ValidationError("Skills cannot be empty")
+        skills = [skill.strip() for skill in value.split(',') if skill.strip()]
+        if len(skills) < 3:
+            raise serializers.ValidationError("Please provide at least 3 skills")
+        return value
+
+    def validate_user_cgpa(self, value):
+        if value < 0 or value > 10:
+            raise serializers.ValidationError("CGPA must be between 0 and 10")
+        return value
+
+    def update(self, instance, validated_data):
+        if 'user_skills' in validated_data:
+            instance.user_skills = validated_data['user_skills']
+        
+        if 'user_image' in self.context.get('request').FILES:
+            instance.user_image = self.context.get('request').FILES['user_image']
+        if 'user_resume' in self.context.get('request').FILES:
+            instance.user_resume = self.context.get('request').FILES['user_resume']
+        
+        for attr, value in validated_data.items():
+            if attr != 'user_skills':
+                setattr(instance, attr, value)
+        
+        instance.save()
+        return instance   
     
 class EmployerProfileSerializer(serializers.ModelSerializer):
     class Meta:

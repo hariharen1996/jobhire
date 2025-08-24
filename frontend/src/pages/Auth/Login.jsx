@@ -8,7 +8,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPasword] = useState("");
   const [error, setError] = useState("");
-  const [loading,setLoading] = useState('')
+  const [loading,setLoading] = useState(false)
   
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -55,6 +55,7 @@ const Login = () => {
 
       dispatch(
         setUser({
+          token: data.token,
           role: data.user.role,
           email: data.user.email,
           username: data.user.username,

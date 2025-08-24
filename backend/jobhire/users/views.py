@@ -77,9 +77,15 @@ class ApplicantProfileCreateView(generics.CreateAPIView):
         response.data = {'profile': response.data,'message': 'Applicant profile created successfully'}
         return response
 
+
 class ApplicantProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = ApplicantProfileSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
 
     def get_object(self):
         try:
@@ -91,13 +97,19 @@ class ApplicantProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance)
         return Response({'profile': serializer.data,'message': 'Applicant profile retrieved successfully'})
-
+   
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+        
+        if 'user_image' in request.FILES:
+            instance.user_image = request.FILES['user_image']
+        if 'user_resume' in request.FILES:
+            instance.user_resume = request.FILES['user_resume']
+        
         serializer.save()
-        return Response({'profile': serializer.data,'message': 'Applicant profile updated successfully'})
+        return Response({'profile': serializer.data,'message': 'Profile updated successfully'})
 
 
 class EmployerProfileCreateView(generics.CreateAPIView):

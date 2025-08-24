@@ -20,9 +20,11 @@ const HomePage = () => {
           <button className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2 text-sm rounded text-white cursor-pointer home-btn transition hover:bg-blue-600 border-1 border-blue-500">
             <i className="fas fa-chart-line"></i> Dashboard
           </button>
+        <Link to="/applicant-details">  
           <button className="flex items-center gap-2 px-2 py-2 md:px-4 md:py-2 text-sm rounded text-white cursor-pointer home-btn transition hover:bg-blue-600 border-1 border-blue-500">
             <i className="fa fa-eye"></i> View Profile
           </button>
+        </Link>  
         </div>
       </div>
       <div className="flex-5 md:flex-1">
