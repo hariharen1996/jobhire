@@ -122,7 +122,55 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
         return instance   
     
 class EmployerProfileSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username', read_only=True)
+    employer_image_url = serializers.SerializerMethodField()
+    company_logo_url = serializers.SerializerMethodField()
+
     class Meta:
         model = EmployerProfile
-        fields = ['employer_image','company_name','company_logo','company_website_url','company_description','company_location','employer_email','employer_contact','company_startdate','company_linkedin','company_size']
+        fields = [
+            'username',
+            'employer_image_url',
+            'company_logo_url',
+            'company_name',
+            'company_website_url',
+            'company_description',
+            'company_location',
+            'employer_email',
+            'employer_contact',
+            'company_startdate',
+            'company_linkedin',
+            'company_size'
+        ]
         read_only_fields = ['user']
+
+    def get_employer_image_url(self, obj):
+        if obj.employer_image and obj.employer_image.name != 'employer_default.png':
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.employer_image.url)
+            return f"{settings.MEDIA_URL}{obj.employer_image.name}"
+        return None
+
+    def get_company_logo_url(self, obj):
+        if obj.company_logo and obj.company_logo.name != 'company_logo.png':
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.company_logo.url)
+            return f"{settings.MEDIA_URL}{obj.company_logo.name}"
+        return None
+
+    def update(self, instance, validated_data):
+        print(instance)
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if 'employer_image' in self.context.get('request').FILES:
+            instance.employer_image = self.context.get('request').FILES['employer_image']
+        if 'company_logo' in self.context.get('request').FILES:
+            instance.company_logo = self.context.get('request').FILES['company_logo']
+        
+        instance.save()
+        return instance 
+

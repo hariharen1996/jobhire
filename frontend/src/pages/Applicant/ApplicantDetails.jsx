@@ -53,7 +53,7 @@ const ApplicantDetails = () => {
             alt="Profile"
             className="w-40 h-40 rounded-full object-cover border-4 border-blue-100"
             onError={(e) => {
-              e.target.src = userImage;
+              e.target.src = profileImage;
             }}
           />
           {resumeUrl && (

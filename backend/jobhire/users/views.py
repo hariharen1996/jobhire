@@ -131,6 +131,11 @@ class EmployerProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
     serializer_class = EmployerProfileSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
+
     def get_object(self):
         try:
             return self.request.user.employerprofile
@@ -146,6 +151,12 @@ class EmployerProfileRetrieveUpdateView(generics.RetrieveUpdateAPIView):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
+        if 'employer_image' in request.FILES:
+            instance.employer_image = request.FILES['employer_image']
+        if 'company_logo' in request.FILES:
+            instance.company_logo = request.FILES['company_logo']
+        
+
         serializer.save()
         return Response({'profile': serializer.data,'message': 'Employer profile updated successfully'})
-

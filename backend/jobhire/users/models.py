@@ -4,6 +4,8 @@ from django.core.validators import validate_email
 from django.core.exceptions import ValidationError
 from django.contrib.auth.models import User
 from django.conf import settings
+from datetime import date
+
 
 # Create your models here.
 class UserManager(BaseUserManager):
@@ -80,16 +82,16 @@ class ApplicantProfile(models.Model):
 class EmployerProfile(models.Model):
     user = models.OneToOneField(settings.AUTH_USER_MODEL,on_delete=models.CASCADE)
     employer_image = models.ImageField(upload_to='employerprofile/',default='employer_default.png')
-    company_name = models.CharField(max_length=200)
+    company_name = models.CharField(max_length=200,default='xyz company')
     company_logo = models.ImageField(upload_to='companylogo/',default='company_logo.png')
-    company_website_url = models.URLField(blank=True,null=True)
-    company_description = models.TextField()
-    company_location = models.CharField(max_length=200)
-    employer_email = models.EmailField()
-    employer_contact = models.CharField(max_length=15,blank=True,null=True)
-    company_startdate = models.DateField(blank=True,null=True)
-    company_linkedin = models.URLField(blank=True,null=True)
-    company_size = models.CharField(max_length=100,blank=True,null=True)
+    company_website_url = models.URLField(blank=True,null=True,default='https://www.example.com')
+    company_description = models.TextField(default='We are a growing company dedicated to excellence.')
+    company_location = models.CharField(max_length=200,default='Chennai, Tamil Nadu')
+    employer_email = models.EmailField(default='hr@example.com')
+    employer_contact = models.CharField(max_length=15,blank=True,null=True,default='+91-9876543211')
+    company_startdate = models.DateField(blank=True,null=True,default=date.today)
+    company_linkedin = models.URLField(blank=True,null=True, default='https://www.linkedin.com/company/example')
+    company_size = models.CharField(max_length=100,blank=True,null=True,default='11-50 employees')
 
     def check_fields(self):
         all_fields = [self.employer_image,self.company_name,self.company_logo,self.company_website_url,self.company_description,self.company_location,self.employer_email,self.employer_contact,self.company_startdate,self.company_linkedin,self.company_size]
