@@ -15,6 +15,8 @@ import ApplicantProfile from './pages/Applicant/ApplicantProfile'
 import ApplicantDetails from './pages/Applicant/ApplicantDetails'
 import EmployerProfile from './pages/Employer/EmployerProfile'
 import EmployerDetails from './pages/Employer/EmployerDetails'
+import JobForm from './pages/Job/JobForm'
+import Dashboard from './pages/Job/Dashboard'
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
         <Route path='/applicant-details' element={<ProtectedRoute><ApplicantDetails /></ProtectedRoute>} />
         <Route path='/employer-profile' element={<ProtectedRoute><EmployerProfile /></ProtectedRoute>} />
         <Route path='/employer-details' element={<ProtectedRoute><EmployerDetails /></ProtectedRoute>} />
+        <Route path='/job-form' element={<ProtectedRoute><JobForm /></ProtectedRoute>} />
+        <Route path='/dashboard' element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       </Routes>
     </Provider>
   )
