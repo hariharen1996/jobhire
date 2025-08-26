@@ -160,7 +160,10 @@ class CreateJobView(APIView):
         if not hasattr(user,'employerprofile'):
             return Response({'detail':'only employers can create job'},status=status.HTTP_403_FORBIDDEN)
 
-        serializer = JobSerializer(data=request.data)
+        data = request.data.copy()
+        data['employer'] = user.employerprofile.id
+
+        serializer = JobSerializer(data=data)
         if serializer.is_valid():
             job = serializer.save()
             return Response(JobSerializer(job).data, status=status.HTTP_201_CREATED)

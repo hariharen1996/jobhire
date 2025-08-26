@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { addJobs } from "../../features/job/jobSlice";
 
 const JobForm = () => {
   const [formData, setFormData] = useState({
@@ -10,10 +12,15 @@ const JobForm = () => {
     role: "",
     experience: "",
     application_deadline: "",
-    number_of_openings: 0,
+    number_of_openings: 1,
     job_skills: "",
     status: "",
   });
+  const [errors, setErrors] = useState({});
+  const [message, setMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { status } = useSelector((state) => state.jobs);
+  const dispatch = useDispatch();
 
   const salaryOptions = [
     { value: "0-3", label: "0-3 Lakhs" },
@@ -51,16 +58,154 @@ const JobForm = () => {
       ...prev,
       [name]: value,
     }));
+
+    setErrors((prevErrors) => ({
+      ...prevErrors,
+      [name]: undefined,
+    }));
   };
 
-  const handleSubmit = (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    if (!formData.title) {
+      newErrors.title = "Title is required";
+    } else if (formData.title.length < 5 || formData.title.length > 255) {
+      newErrors.title = "Title must be between 5-255 characters";
+    }
+
+    if (!formData.description) {
+      newErrors.description = "Description is required";
+    } else if (formData.description.length < 10) {
+      newErrors.description = "Description must be at least 10 characters";
+    }
+
+    if (!formData.location) {
+      newErrors.location = "Location is required";
+    } else if (formData.location.length < 2 || formData.location.length > 200) {
+      newErrors.location = "Location must be between 2-200 characters";
+    }
+
+    if (!formData.role) {
+      newErrors.role = "Role is required";
+    } else if (formData.role.length < 2 || formData.role.length > 255) {
+      newErrors.role = "Role must be between 2-255 characters";
+    }
+
+    if (!formData.salary_range) {
+      newErrors.salary_range = "Salary range is required";
+    }
+
+    if (!formData.work_mode) {
+      newErrors.work_mode = "Work mode is required";
+    }
+
+    if (!formData.experience) {
+      newErrors.experience = "Experience is required";
+    }
+
+    if (!formData.status) {
+      newErrors.status = "Status is required";
+    }
+
+    if (!formData.application_deadline) {
+      newErrors.application_deadline = "Application deadline is required";
+    } else {
+      const deadlineDate = new Date(formData.application_deadline);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (deadlineDate < today) {
+        newErrors.application_deadline = "Deadline cannot be in the past";
+      }
+    }
+
+    if (!formData.number_of_openings) {
+      newErrors.number_of_openings = "Number of openings is required";
+    } else if (formData.number_of_openings < 1) {
+      newErrors.number_of_openings = "Must have at least 1 opening";
+    }
+
+    if (!formData.job_skills) {
+      newErrors.job_skills = "Skills are required";
+    } else {
+      const skills = formData.job_skills
+        .split(",")
+        .map((skill) => skill.trim())
+        .filter((skill) => skill);
+      if (skills.length < 3) {
+        newErrors.job_skills =
+          "Please provide at least 3 skills separated by commas";
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     console.log(formData);
+
+    if (isSubmitting) {
+      console.log("⏳ Your request is being processed. Please wait...");
+      return;
+    }
+
+    const isValid = validateForm();
+    if (!isValid) {
+      return;
+    } 
+
+    const data = {
+      ...formData,
+      number_of_openings: parseInt(formData.number_of_openings, 10),
+    };
+
+    setIsSubmitting(true)
+    setMessage('')
+
+    try {
+      await dispatch(addJobs(data)).unwrap();
+      setMessage("✅ Job posted successfully");
+
+      setFormData({
+        title: "",
+        description: "",
+        location: "",
+        salary_range: "",
+        work_mode: "",
+        role: "",
+        experience: "",
+        application_deadline: "",
+        number_of_openings: 1,
+        job_skills: "",
+        status: "",
+      });
+    } catch (err) {
+      setMessage("❌ Failed to create job");
+      if (err.response?.data) {
+        setErrors(err.response.data);
+      } else if (err.message) {
+        setErrors({ general: err.message });
+      }
+    }finally{
+      setIsSubmitting(false)
+    }
   };
 
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white shadow-md rounded-lg my-10">
       <h1 className="text-2xl font-bold mb-6 text-gray-800">Post a New Job</h1>
+      {message && (
+        <div
+          className={`mb-4 text-sm px-4 py-2 rounded ${
+            message.includes("✅")
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
+          }`}
+        >
+          {message}
+        </div>
+      )}
       <form
         onSubmit={handleSubmit}
         className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6"
@@ -146,7 +291,7 @@ const JobForm = () => {
             }
           >
             <label className="block text-gray-700 text-sm font-bold mb-1">
-              {label}
+              {label} *
             </label>
             {type === "textarea" ? (
               <textarea
@@ -154,7 +299,9 @@ const JobForm = () => {
                 value={formData[name]}
                 onChange={handleChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className={`w-full px-3 py-2 border rounded-md ${
+                  errors[name] ? "border-red-500" : "border-gray-300"
+                }`}
                 placeholder={rest.placeholder}
               />
             ) : type === "select" ? (
@@ -162,14 +309,17 @@ const JobForm = () => {
                 name={name}
                 value={formData[name]}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                className={`w-full px-3 py-2 border rounded-md ${
+                  errors[name] ? "border-red-500" : "border-gray-300"
+                }`}
               >
                 <option value="">Select an option</option>
-                {rest.options.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
+                {Array.isArray(rest.options) &&
+                  rest.options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
               </select>
             ) : (
               <input
@@ -177,11 +327,14 @@ const JobForm = () => {
                 name={name}
                 value={formData[name]}
                 onChange={handleChange}
-                className={`w-full px-3 py-2 border border-gray-300 rounded-md ${
+                className={`w-full px-3 py-2 border rounded-md ${
                   rest.disabled ? "bg-gray-100 cursor-not-allowed" : ""
-                }`}
+                } ${errors[name] ? "border-red-500" : "border-gray-300"}`}
                 {...rest}
               />
+            )}
+            {errors[name] && (
+              <p className="text-red-600 text-sm mt-1">{errors[name]}</p>
             )}
           </div>
         ))}
@@ -189,9 +342,12 @@ const JobForm = () => {
         <div className="md:col-span-2">
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 w-full"
+            className="px-6 py-2 m-2 w-full bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+            disabled={isSubmitting || status === "loading"}
           >
-            Submit
+            {isSubmitting || status === "loading"
+              ? "Processing..."
+              : "Post Job"}
           </button>
         </div>
       </form>
