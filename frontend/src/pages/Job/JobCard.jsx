@@ -121,6 +121,15 @@ const JobCard = ({ job }) => {
             Skills: {job.job_skills || "Not specified"}
           </p>
         </div>
+
+        <div className="flex justify-between gap-4 pt-4 border-t border-gray-100">
+          <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+            Edit
+          </button>
+          <button className="text-red-600 hover:text-red-800 font-medium text-sm">
+            Delete
+          </button>
+        </div>
       </div>
     </div>
   );
