@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addJobs } from "../../features/job/jobSlice";
+import { addJobs, editJobs } from "../../features/job/jobSlice";
 import { useNavigate } from "react-router-dom";
 
 const JobForm = () => {
@@ -20,9 +20,10 @@ const JobForm = () => {
   const [errors, setErrors] = useState({});
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { status } = useSelector((state) => state.jobs);
+  const { status, editJob } = useSelector((state) => state.jobs);
+  console.log(editJob);
   const dispatch = useDispatch();
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const salaryOptions = [
     { value: "0-3", label: "0-3 Lakhs" },
@@ -143,32 +144,54 @@ const JobForm = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    console.log(formData);
-
-    if (isSubmitting) {
-      console.log("⏳ Your request is being processed. Please wait...");
-      return;
+  useEffect(() => {
+    if (editJob) {
+      setFormData({
+        ...editJob,
+        salary_range: editJob.salary_range || "",
+        work_mode: editJob.work_mode || "",
+        experience: editJob.experience || "",
+        status: editJob.status || "",
+        application_deadline: editJob.application_deadline
+          ? editJob.application_deadline.split("T")[0]
+          : "",
+        number_of_openings: editJob.number_of_openings || 1,
+        job_skills: Array.isArray(editJob.job_skills)
+          ? editJob.job_skills.join(", ")
+          : editJob.job_skills || "",
+      });
     }
+  }, [editJob]);
 
-    const isValid = validateForm();
-    if (!isValid) {
-      return;
-    } 
+  const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (isSubmitting) {
+    console.log("⏳ Your request is being processed. Please wait...");
+    return;
+  }
 
-    const data = {
-      ...formData,
-      number_of_openings: parseInt(formData.number_of_openings, 10),
-    };
+  const isValid = validateForm();
+  if (!isValid) {
+    return;
+  }
 
-    setIsSubmitting(true)
-    setMessage('')
+  const data = {
+    ...formData,
+    number_of_openings: parseInt(formData.number_of_openings, 10),
+  };
 
-    try {
+  setIsSubmitting(true);
+  setMessage("");
+
+  try {
+    if (editJob && editJob.id) {
+      await dispatch(editJobs({ id: editJob.id, ...data })).unwrap();
+      setMessage("✅ Job updated successfully");
+    } else {
       await dispatch(addJobs(data)).unwrap();
       setMessage("✅ Job posted successfully");
-
+      
       setFormData({
         title: "",
         description: "",
@@ -182,28 +205,31 @@ const JobForm = () => {
         job_skills: "",
         status: "",
       });
-
-      window.scrollTo({top:0,behavior: "smooth"})
-
-      setTimeout(() => {
-        navigate("/dashboard")
-      },2000)
-
-    } catch (err) {
-      setMessage("❌ Failed to create job");
-      if (err.response?.data) {
-        setErrors(err.response.data);
-      } else if (err.message) {
-        setErrors({ general: err.message });
-      }
-    }finally{
-      setIsSubmitting(false)
     }
-  };
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1500);
+    
+  } catch (err) {
+    setMessage("❌ Failed to create job");
+    if (err.response?.data) {
+      setErrors(err.response.data);
+    } else if (err.message) {
+      setErrors({ general: err.message });
+    }
+  } finally {
+    setIsSubmitting(false);
+  }
+};
 
   return (
     <div className="max-w-4xl mx-auto p-8 bg-white shadow-md rounded-lg my-10">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">Post a New Job</h1>
+      <h1 className="text-2xl font-bold mb-6 text-gray-800">
+        {editJob ? "Edit Job" : "Post a New Job"}
+      </h1>
       {message && (
         <div
           className={`mb-4 text-sm px-4 py-2 rounded ${
@@ -356,6 +382,8 @@ const JobForm = () => {
           >
             {isSubmitting || status === "loading"
               ? "Processing..."
+              : editJob
+              ? "Update Job"
               : "Post Job"}
           </button>
         </div>

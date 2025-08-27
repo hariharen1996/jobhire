@@ -1,19 +1,49 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { fetchJobs } from "../../features/job/jobSlice";
+import {
+  clearEditJob,
+  deleteJobs,
+  fetchJobs,
+  setEditJob,
+} from "../../features/job/jobSlice";
 import JobCard from "./JobCard";
+import ConfirmationDialog from "../../components/dialog/ConfirmationDialog";
 
 const Dashboard = () => {
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [jobToDelete, setJobToDelete] = useState(null);
   const { role, token } = useSelector((state) => state.user);
   const { status, jobs } = useSelector((state) => state.jobs);
-  console.log(jobs)
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(fetchJobs())
+    dispatch(fetchJobs());
   }, [dispatch, token]);
+
+  const handleEdit = (job) => {
+    dispatch(setEditJob(job));
+    navigate("/job-form");
+  };
+
+  const handleDeleteClick = (job) => {
+    setJobToDelete(job);
+    setDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (jobToDelete && jobToDelete.id) {
+      dispatch(deleteJobs(jobToDelete.id));
+    }
+    setDialogOpen(false);
+    setJobToDelete(null);
+  };
+
+  const handleCancelDelete = () => {
+    setDialogOpen(false);
+    setJobToDelete(null);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -22,6 +52,7 @@ const Dashboard = () => {
         {role === "employer" && (
           <button
             onClick={() => {
+              dispatch(clearEditJob());
               navigate("/job-form");
             }}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
@@ -47,16 +78,26 @@ const Dashboard = () => {
           </span>
         </div>
       ) : (
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-            {jobs.map((job) => (
-              <JobCard
-                key={job.id}
-                job={job}
-              />
-            ))}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+          {jobs.map((job) => (
+            <JobCard
+              key={job.id}
+              job={job}
+              isEmployer={role === "employer"}
+              handleEdit={() => handleEdit(job)}
+              handleDelete={() => handleDeleteClick(job)}
+            />
+          ))}
+        </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={dialogOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Confirm Deletion"
+        message={`Are you sure you want to delete the job "${jobToDelete?.title}"? This action cannot be undone.`}
+      />
     </div>
   );
 };

@@ -1,4 +1,4 @@
-const JobCard = ({ job }) => {
+const JobCard = ({ job, isEmployer, handleEdit, handleDelete }) => {
   console.log(job);
   const getDaysAgo = () => {
     if (!job.posted_time && !job.created_at) return "recently";
@@ -122,14 +122,22 @@ const JobCard = ({ job }) => {
           </p>
         </div>
 
-        <div className="flex justify-between gap-4 pt-4 border-t border-gray-100">
-          <button className="text-blue-600 hover:text-blue-800 font-medium text-sm">
-            Edit
-          </button>
-          <button className="text-red-600 hover:text-red-800 font-medium text-sm">
-            Delete
-          </button>
-        </div>
+        {isEmployer && (
+          <div className="flex justify-between gap-4 pt-4 border-t border-gray-100">
+            <button
+              onClick={handleEdit}
+              className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+            >
+              Edit
+            </button>
+            <button
+              onClick={handleDelete}
+              className="text-red-600 hover:text-red-800 font-medium text-sm"
+            >
+              Delete
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
