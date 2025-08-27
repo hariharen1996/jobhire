@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { addJobs } from "../../features/job/jobSlice";
+import { useNavigate } from "react-router-dom";
 
 const JobForm = () => {
   const [formData, setFormData] = useState({
@@ -21,6 +22,7 @@ const JobForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { status } = useSelector((state) => state.jobs);
   const dispatch = useDispatch();
+  const navigate = useNavigate()
 
   const salaryOptions = [
     { value: "0-3", label: "0-3 Lakhs" },
@@ -180,6 +182,13 @@ const JobForm = () => {
         job_skills: "",
         status: "",
       });
+
+      window.scrollTo({top:0,behavior: "smooth"})
+
+      setTimeout(() => {
+        navigate("/dashboard")
+      },2000)
+
     } catch (err) {
       setMessage("❌ Failed to create job");
       if (err.response?.data) {

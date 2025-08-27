@@ -7,6 +7,12 @@ export const addJobs = createAsyncThunk("jobs/addJobs", async (data) => {
   return response.data;
 });
 
+export const fetchJobs = createAsyncThunk("jobs/fetchJobs", async () => {
+  const response = await api.get("/jobs/dashboard-api/");
+  console.log(response.data);
+  return response.data.jobs || [];
+});
+
 const initialState = {
   jobs: [],
   status: "idle",
@@ -26,6 +32,17 @@ const jobSlice = createSlice({
         state.jobs.unshift(action.payload);
       })
       .addCase(addJobs.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.error.message;
+      })
+      .addCase(fetchJobs.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(fetchJobs.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        state.jobs = action.payload;
+      })
+      .addCase(fetchJobs.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.error.message;
       });
