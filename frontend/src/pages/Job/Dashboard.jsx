@@ -1,36 +1,51 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   clearEditJob,
   deleteJobs,
   fetchJobs,
+  setCurrentPage,
   setEditJob,
 } from "../../features/job/jobSlice";
 import JobCard from "./JobCard";
 import ConfirmationDialog from "../../components/dialog/ConfirmationDialog";
+import Pagination from "../../components/Pagination/Pagination";
 
 const Dashboard = () => {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [jobToDelete, setJobToDelete] = useState(null);
   const { role, token } = useSelector((state) => state.user);
-  const { status, jobs } = useSelector((state) => state.jobs);
+  const { status, jobs,currentPage,jobsPerPage } = useSelector((state) => state.jobs);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+
+  const totalPages = Math.ceil(jobs.length / jobsPerPage)
+  console.log(totalPages)
+  const startIndex = (currentPage - 1) * jobsPerPage
+  console.log(startIndex)
+  const endIndex = startIndex + jobsPerPage
+  console.log(endIndex)
+  const currentJobs = jobs.slice(startIndex,endIndex)
+  console.log(currentJobs)
+
+  const handlePageChange = useCallback((page) => {
+    dispatch(setCurrentPage(page))
+  },[dispatch])
 
   useEffect(() => {
     dispatch(fetchJobs());
   }, [dispatch, token]);
 
-  const handleEdit = (job) => {
+  const handleEdit = useCallback((job) => {
     dispatch(setEditJob(job));
     navigate("/job-form");
-  };
+  },[dispatch,navigate]);
 
-  const handleDeleteClick = (job) => {
+  const handleDeleteClick = useCallback((job) => {
     setJobToDelete(job);
     setDialogOpen(true);
-  };
+  },[]);
 
   const handleConfirmDelete = () => {
     if (jobToDelete && jobToDelete.id) {
@@ -79,7 +94,7 @@ const Dashboard = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          {jobs.map((job) => (
+          {currentJobs.map((job) => (
             <JobCard
               key={job.id}
               job={job}
@@ -98,6 +113,13 @@ const Dashboard = () => {
         title="Confirm Deletion"
         message={`Are you sure you want to delete the job "${jobToDelete?.title}"? This action cannot be undone.`}
       />
+
+      <div>
+        {totalPages > 1 && (
+          <Pagination currentPage={currentPage} totalPages={totalPages} handlePageChange={handlePageChange} />
+        )}
+      </div>
+
     </div>
   );
 };

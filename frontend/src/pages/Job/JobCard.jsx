@@ -1,3 +1,5 @@
+import React from "react";
+
 const JobCard = ({ job, isEmployer, handleEdit, handleDelete }) => {
   console.log(job);
   const getDaysAgo = () => {
@@ -143,4 +145,4 @@ const JobCard = ({ job, isEmployer, handleEdit, handleDelete }) => {
   );
 };
 
-export default JobCard;
+export default React.memo(JobCard);

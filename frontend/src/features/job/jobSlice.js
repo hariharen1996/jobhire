@@ -31,12 +31,17 @@ const initialState = {
   status: "idle",
   error: null,
   editJob: null,
+  currentPage: 1,
+  jobsPerPage: 6
 };
 
 const jobSlice = createSlice({
   name: "jobs",
   initialState,
   reducers: {
+    setCurrentPage: (state,action) => {
+      state.currentPage = action.payload
+    },
     setEditJob: (state, action) => {
       state.editJob = action.payload;
     },
@@ -98,5 +103,5 @@ const jobSlice = createSlice({
   },
 });
 
-export const { setEditJob, clearEditJob } = jobSlice.actions;
+export const { setEditJob, clearEditJob,setCurrentPage } = jobSlice.actions;
 export default jobSlice.reducer;
