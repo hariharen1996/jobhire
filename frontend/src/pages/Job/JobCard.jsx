@@ -3,24 +3,18 @@ import React from "react";
 const JobCard = ({ job, isEmployer, handleEdit, handleDelete }) => {
   console.log(job);
   const getDaysAgo = () => {
-    if (!job.posted_time && !job.created_at) return "recently";
+    if (!job.created_at) return "recently";
 
-    try {
-      const postedDate = new Date(job.posted_time || job.created_at);
-      if (isNaN(postedDate.getTime())) return "recently";
+    const postedDate = new Date(job.created_at);
+    if (isNaN(postedDate.getTime())) return "recently";
 
-      const currentDate = new Date();
-      console.log(currentDate);
-      const diffTime = Math.abs(currentDate - postedDate);
-      const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-      console.log(diffTime, diffDays);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate - postedDate);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-      if (diffDays === 0) return "today";
-      if (diffDays === 1) return "1 day ago";
-      return `${diffDays} days ago`;
-    } catch (error) {
-      return "recently";
-    }
+    if (diffDays === 0) return "today";
+    if (diffDays === 1) return "1 day ago";
+    return `${diffDays} days ago`;
   };
 
   const daysAgo = getDaysAgo();
